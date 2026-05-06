@@ -1,4 +1,3 @@
-#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Detecta e remove ativadores ilegais do Windows, e/ou reseta a ativacao atual.
@@ -604,10 +603,14 @@ function Show-Menu {
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host ''
-    Write-Host '  ERRO: Este script precisa ser executado como Administrador.' -ForegroundColor $COR_AMEACA
-    Write-Host '  Clique com o botao direito no PowerShell e escolha "Executar como administrador".' -ForegroundColor $COR_AVISO
+    Write-Host '  Este script requer privilegios de Administrador.' -ForegroundColor Yellow
+    Write-Host '  Solicitando elevacao via UAC...' -ForegroundColor DarkCyan
     Write-Host ''
-    exit 1
+    $scriptPath = if ($PSCommandPath) { $PSCommandPath } else { $MyInvocation.MyCommand.Path }
+    Start-Process -FilePath 'powershell.exe' `
+        -ArgumentList "-NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" `
+        -Verb RunAs
+    exit
 }
 
 if (-not (Test-Path $LogDir)) {
