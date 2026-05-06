@@ -1,0 +1,83 @@
+# fiepb-scripts
+
+Repositório de scripts PowerShell para automação e gestão do ambiente Windows corporativo.
+
+Desenvolvido e mantido por **Bruno Araujo** — Setor de TI.
+
+---
+
+## Sobre o projeto
+
+Este repositório centraliza scripts utilizados no dia a dia do suporte e administração de TI, abrangendo compliance, auditoria, manutenção e provisionamento de estações de trabalho Windows 10/11 ingressadas no domínio corporativo.
+
+Cada script é documentado, versionado e testado para uso seguro em ambientes com Active Directory.
+
+---
+
+## Estrutura do repositório
+
+```
+fiepb-scripts/
+├── docs/                          # Documentação detalhada por área
+│   └── compliance-ativacao.md
+└── scripts/
+    └── compliance/                # Scripts de conformidade e licenciamento
+        ├── README.md
+        └── Invoke-ActivationCompliance.ps1
+```
+
+---
+
+## Scripts disponíveis
+
+### Compliance de Ativação Windows
+
+| Script | Descrição |
+|---|---|
+| [`Invoke-ActivationCompliance.ps1`](scripts/compliance/Invoke-ActivationCompliance.ps1) | Detecta e remove ativadores ilegais do Windows; reseta a ativação para novo processo |
+
+---
+
+## Requisitos gerais
+
+- **Sistema operacional:** Windows 10 / Windows 11
+- **PowerShell:** versão 5.1 ou superior
+- **Privilégios:** Administrador local (obrigatório para todos os scripts)
+- **Domínio:** Scripts compatíveis com ambientes Active Directory
+
+---
+
+## Como usar
+
+1. Clone ou baixe o repositório
+2. Abra o PowerShell **como Administrador**
+3. Navegue até a pasta do script desejado
+4. Execute:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\NomeDoScript.ps1
+```
+
+> Cada script possui documentação própria em sua pasta e em `docs/`.
+
+---
+
+## Logs
+
+Os scripts geram logs em `C:\Windows\Logs\` com nome e timestamp da execução para auditoria posterior.
+
+---
+
+## Autor
+
+**Bruno Araujo**  
+Setor de TI — FIEPB  
+GitHub: [@brunofaraujo](https://github.com/brunofaraujo)
+
+---
+
+## Licença
+
+Distribuído sob a [licença MIT](LICENSE).  
+Uso autorizado exclusivamente em ambientes corporativos com finalidade de compliance e administração.

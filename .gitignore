@@ -1,0 +1,33 @@
+# Logs gerados pelos scripts
+*.log
+
+# Arquivos de configuracao local / segredos
+*.env
+*.secret
+secrets/
+config/local/
+
+# Editores
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+Thumbs.db
+desktop.ini
+
+# PowerShell
+*.psm1.bak
+profile_local.ps1
+
+# Windows
+[Tt]humbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
