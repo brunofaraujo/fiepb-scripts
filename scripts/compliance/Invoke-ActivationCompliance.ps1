@@ -177,7 +177,7 @@ function Get-StatusAtivacao {
         $slmgr = cscript //NoLogo "$env:SystemRoot\System32\slmgr.vbs" /dli 2>&1
         $saida = $slmgr -join "`n"
 
-        if ($saida -match 'Nome[^:]*:\s*(.+)') {
+        if ($saida -match '(?m)^\s*(?:Nome|Name):\s*(.+)') {
             $resultado.Descricao = $Matches[1].Trim()
         }
         if ($saida -match 'Estado da [Ll]icen[^:]*:\s*(.+)') {
