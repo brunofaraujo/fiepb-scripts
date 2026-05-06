@@ -1,0 +1,80 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Compilar e publicar executável
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extrair versão do script
+        id: versao
+        shell: pwsh
+        run: |
+          $match = Select-String -Path .\scripts\compliance\Invoke-ActivationCompliance.ps1 `
+                                 -Pattern 'Versao\s+:\s+(\d+\.\d+\.\d+)'
+          $ver = if ($match) { $match.Matches.Groups[1].Value } else { '1.0.0' }
+          echo "numero=$ver"     >> $env:GITHUB_OUTPUT
+          echo "arquivo=$ver.0"  >> $env:GITHUB_OUTPUT
+
+      - name: Instalar ps2exe
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module ps2exe -Force -Scope CurrentUser
+
+      - name: Compilar ActivationCompliance.exe
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Invoke-ps2exe `
+            -inputFile  .\scripts\compliance\Invoke-ActivationCompliance.ps1 `
+            -outputFile .\dist\ActivationCompliance.exe `
+            -requireAdmin `
+            -title     "Compliance de Ativacao - FIEPB" `
+            -company   "FIEPB" `
+            -copyright "Bruno Araujo" `
+            -version   "${{ steps.versao.outputs.arquivo }}"
+
+      - name: Remover release anterior (latest)
+        shell: bash
+        run: gh release delete latest --cleanup-tag --yes || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publicar release latest
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "v${{ steps.versao.outputs.numero }} — Versão mais recente"
+          make_latest: true
+          body: |
+            ## Download
+
+            Clique no arquivo abaixo para baixar e execute-o diretamente — **não é necessário instalar nada**.
+
+            > O executável solicita elevação de privilégios automaticamente via UAC ao ser aberto.
+
+            ---
+
+            ### Como usar
+
+            1. Baixe **ActivationCompliance.exe**
+            2. Dê dois cliques no arquivo
+            3. Aceite o prompt de **Controle de Conta de Usuário (UAC)**
+            4. Siga o menu interativo
+
+            ---
+
+            **Commit:** [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            **Gerado em:** ${{ github.event.head_commit.timestamp }}
+          files: dist/ActivationCompliance.exe

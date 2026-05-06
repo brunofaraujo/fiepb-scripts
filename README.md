@@ -1,8 +1,20 @@
 # fiepb-scripts
 
+[![Build & Release](https://github.com/brunofaraujo/fiepb-scripts/actions/workflows/build-release.yml/badge.svg)](https://github.com/brunofaraujo/fiepb-scripts/actions/workflows/build-release.yml)
+
 Repositório de scripts PowerShell para automação e gestão do ambiente Windows corporativo.
 
 Desenvolvido e mantido por **Bruno Araujo** — Setor de TI.
+
+---
+
+## Download rápido
+
+| Ferramenta | Download |
+|---|---|
+| Compliance de Ativação Windows | [⬇ ActivationCompliance.exe](https://github.com/brunofaraujo/fiepb-scripts/releases/latest/download/ActivationCompliance.exe) |
+
+> Baixe, dê dois cliques e aceite o UAC — sem instalação, sem dependências.
 
 ---
 
@@ -48,6 +60,12 @@ fiepb-scripts/
 ---
 
 ## Como usar
+
+**Opção 1 — Executável (recomendado para usuários finais)**
+
+Baixe o `.exe` na seção [Download rápido](#download-rápido) acima e execute diretamente.
+
+**Opção 2 — Script PowerShell (para administradores e desenvolvimento)**
 
 1. Clone ou baixe o repositório
 2. Abra o PowerShell **como Administrador**
