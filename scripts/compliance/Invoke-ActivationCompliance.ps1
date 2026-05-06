@@ -180,7 +180,9 @@ function Get-StatusAtivacao {
         if ($saida -match 'Nome[^:]*:\s*(.+)') {
             $resultado.Descricao = $Matches[1].Trim()
         }
-        if ($saida -match 'Status de licen[^:]*:\s*(.+)') {
+        if ($saida -match 'Estado da [Ll]icen[^:]*:\s*(.+)') {
+            $resultado.Status = $Matches[1].Trim()
+        } elseif ($saida -match 'Status de [Ll]icen[^:]*:\s*(.+)') {
             $resultado.Status = $Matches[1].Trim()
         } elseif ($saida -match 'License Status[^:]*:\s*(.+)') {
             $resultado.Status = $Matches[1].Trim()
@@ -303,7 +305,7 @@ function Show-RelatorioScan {
     Write-Host ''
     Write-Host "  Sistema    : $($s.Descricao)" -ForegroundColor $COR_INFO
 
-    $statusNivel = if ($s.Status -match 'Ativad|Licensed|Activated') { 'OK' } else { 'AVISO' }
+    $statusNivel = if ($s.Status -match 'Ativad|Licenciad|Licensed|Activated') { 'OK' } else { 'AVISO' }
     Write-StatusLine -Rotulo 'Status atual' -Valor $s.Status -Status $statusNivel
 
     if ($s.ServidorKMS) {
