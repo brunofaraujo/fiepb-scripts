@@ -1,4 +1,4 @@
-# Guia: Compliance de Ativação do Windows
+# Guia: Sanitizador de Ativação do Windows
 
 **Script:** `Invoke-ActivationCompliance.ps1`  
 **Autor:** Bruno Araujo — Setor de TI  

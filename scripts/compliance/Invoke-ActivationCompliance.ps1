@@ -101,7 +101,7 @@ function Write-Header {
     Write-Host ''
     Write-Host $borda -ForegroundColor $COR_TITULO
     Write-Host ('  {0,-70}' -f ' ') -ForegroundColor $COR_TITULO
-    Write-Host ('  {0,-70}' -f '  FIEPB Scripts - Compliance de Ativacao do Windows') -ForegroundColor $COR_TITULO
+    Write-Host ('  {0,-70}' -f '  FIEPB Scripts - Sanitizador de Ativacao do Windows') -ForegroundColor $COR_TITULO
     Write-Host ('  {0,-70}' -f ' ') -ForegroundColor $COR_TITULO
     Write-Host ('  {0,-45}{1,25}' -f '  Autor: Bruno Araujo', 'v1.0.0') -ForegroundColor $COR_TITULO
     Write-Host ('  {0,-70}' -f ' ') -ForegroundColor $COR_TITULO

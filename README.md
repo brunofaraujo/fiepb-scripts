@@ -12,7 +12,7 @@ Desenvolvido e mantido por **Bruno Araujo** — Setor de TI.
 
 | Ferramenta | Download |
 |---|---|
-| Compliance de Ativação Windows | [⬇ ActivationCompliance.exe](https://github.com/brunofaraujo/fiepb-scripts/releases/latest/download/ActivationCompliance.exe) |
+| Sanitizador de Ativação do Windows | [⬇ ActivationCompliance.exe](https://github.com/brunofaraujo/fiepb-scripts/releases/latest/download/ActivationCompliance.exe) |
 
 > Baixe, dê dois cliques e aceite o UAC — sem instalação, sem dependências.
 
@@ -42,7 +42,7 @@ fiepb-scripts/
 
 ## Scripts disponíveis
 
-### Compliance de Ativação Windows
+### Sanitizador de Ativação do Windows
 
 | Script | Descrição |
 |---|---|

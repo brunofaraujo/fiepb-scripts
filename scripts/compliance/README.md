@@ -1,4 +1,4 @@
-# Compliance de Ativação Windows
+# Sanitizador de Ativação do Windows
 
 Scripts para auditoria e remediação do licenciamento do Windows em estações corporativas.
 

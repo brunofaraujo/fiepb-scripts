@@ -40,7 +40,7 @@ jobs:
             -inputFile  .\scripts\compliance\Invoke-ActivationCompliance.ps1 `
             -outputFile .\dist\ActivationCompliance.exe `
             -requireAdmin `
-            -title     "Compliance de Ativacao - FIEPB" `
+            -title     "Sanitizador de Ativacao do Windows - FIEPB" `
             -company   "FIEPB" `
             -copyright "Bruno Araujo" `
             -version   "${{ steps.versao.outputs.arquivo }}"
