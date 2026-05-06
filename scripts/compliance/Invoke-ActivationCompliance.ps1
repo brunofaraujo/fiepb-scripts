@@ -166,39 +166,49 @@ function Pause-Continuar {
 # ============================================================
 function Get-StatusAtivacao {
     $resultado = @{
-        Descricao      = 'Desconhecido'
-        Status         = 'Desconhecido'
-        ServidorKMS    = ''
-        KMSSuspeito    = $false
-        Detalhes       = ''
+        Descricao   = 'Desconhecido'
+        Status      = 'Desconhecido'
+        Ativado     = $false
+        ServidorKMS = ''
+        KMSSuspeito = $false
+    }
+
+    # WMI: valores numericos, sem dependencia de idioma ou encoding
+    $appId = '55c92734-d682-4d71-983e-d6ec3f16059f'
+    try {
+        $produto = Get-WmiObject -Query "SELECT Name, LicenseStatus FROM SoftwareLicensingProduct WHERE PartialProductKey IS NOT NULL AND ApplicationId = '$appId'" -ErrorAction Stop |
+                   Select-Object -First 1
+
+        if ($produto) {
+            $resultado.Descricao = $produto.Name
+
+            $statusMap = @{
+                0 = 'Nao licenciado'
+                1 = 'Licenciado'
+                2 = 'Graca inicial (OOB)'
+                3 = 'Graca por tolerancia'
+                4 = 'Graca nao genuino'
+                5 = 'Notificacao'
+                6 = 'Graca estendida'
+            }
+            $n = [int]$produto.LicenseStatus
+            $resultado.Status  = if ($statusMap.ContainsKey($n)) { $statusMap[$n] } else { "Codigo $n" }
+            $resultado.Ativado = ($n -eq 1)
+        }
+    } catch {
+        Write-Log "Erro ao consultar WMI SoftwareLicensingProduct: $_" 'ERRO'
     }
 
     try {
-        $slmgr = cscript //NoLogo "$env:SystemRoot\System32\slmgr.vbs" /dli 2>&1
-        $saida = $slmgr -join "`n"
-
-        if ($saida -match '(?m)^\s*(?:Nome|Name):\s*(.+)') {
-            $resultado.Descricao = $Matches[1].Trim()
+        $sls = Get-WmiObject -Class SoftwareLicensingService -ErrorAction Stop
+        if ($sls.KeyManagementServiceName) {
+            $resultado.ServidorKMS = $sls.KeyManagementServiceName
+            if ($resultado.ServidorKMS -match '^(127\.0\.0\.1|localhost|::1)$') {
+                $resultado.KMSSuspeito = $true
+            }
         }
-        if ($saida -match 'Estado da [Ll]icen[^:]*:\s*(.+)') {
-            $resultado.Status = $Matches[1].Trim()
-        } elseif ($saida -match 'Status de [Ll]icen[^:]*:\s*(.+)') {
-            $resultado.Status = $Matches[1].Trim()
-        } elseif ($saida -match 'License Status[^:]*:\s*(.+)') {
-            $resultado.Status = $Matches[1].Trim()
-        }
-        if ($saida -match 'Nome do Computador KMS[^:]*:\s*(.+)') {
-            $resultado.ServidorKMS = $Matches[1].Trim()
-        } elseif ($saida -match 'KMS machine name[^:]*:\s*(.+)') {
-            $resultado.ServidorKMS = $Matches[1].Trim()
-        }
-
-        if ($resultado.ServidorKMS -match '^(127\.0\.0\.1|localhost|::1)') {
-            $resultado.KMSSuspeito = $true
-        }
-        $resultado.Detalhes = $saida
     } catch {
-        Write-Log "Erro ao consultar slmgr: $_" 'ERRO'
+        Write-Log "Erro ao consultar WMI SoftwareLicensingService: $_" 'ERRO'
     }
 
     return $resultado
@@ -305,7 +315,7 @@ function Show-RelatorioScan {
     Write-Host ''
     Write-Host "  Sistema    : $($s.Descricao)" -ForegroundColor $COR_INFO
 
-    $statusNivel = if ($s.Status -match 'Ativad|Licenciad|Licensed|Activated') { 'OK' } else { 'AVISO' }
+    $statusNivel = if ($s.Ativado) { 'OK' } else { 'AVISO' }
     Write-StatusLine -Rotulo 'Status atual' -Valor $s.Status -Status $statusNivel
 
     if ($s.ServidorKMS) {
