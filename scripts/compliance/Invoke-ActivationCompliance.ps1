@@ -618,6 +618,43 @@ function Reset-Ativacao {
 }
 
 # ============================================================
+# LOG
+# ============================================================
+function Show-Log {
+    Write-Section "LOG DA SESSAO ATUAL"
+    Write-Host ''
+    Write-Host "  Arquivo: $LogFile" -ForegroundColor $COR_INFO
+    Write-Host ''
+
+    if (-not (Test-Path $LogFile)) {
+        Write-Host '  Nenhuma entrada de log registrada ainda nesta sessao.' -ForegroundColor $COR_AVISO
+        Pause-Continuar
+        return
+    }
+
+    $linhas = Get-Content $LogFile -Encoding UTF8 -ErrorAction SilentlyContinue
+    if (-not $linhas) {
+        Write-Host '  Log vazio.' -ForegroundColor $COR_AVISO
+        Pause-Continuar
+        return
+    }
+
+    foreach ($linha in $linhas) {
+        if     ($linha -match '\[ERRO\]')  { Write-Host "  $linha" -ForegroundColor $COR_AMEACA  }
+        elseif ($linha -match '\[AVISO\]') { Write-Host "  $linha" -ForegroundColor $COR_AVISO   }
+        else                               { Write-Host "  $linha" -ForegroundColor $COR_INFO     }
+    }
+
+    Write-Host ''
+    Write-Host '  Abrir log no Bloco de Notas? (S/N): ' -ForegroundColor $COR_AVISO -NoNewline
+    if ((Read-Host) -match '^[Ss]$') {
+        Start-Process notepad.exe $LogFile
+    }
+
+    Pause-Continuar
+}
+
+# ============================================================
 # MENU PRINCIPAL
 # ============================================================
 function Show-Menu {
@@ -629,7 +666,8 @@ function Show-Menu {
         Write-Host '  [1]  Escanear computador          (somente deteccao, sem alteracoes)' -ForegroundColor $COR_INFO
         Write-Host '  [2]  Remover ativadores ilegais   + resetar ativacao do Windows'      -ForegroundColor $COR_AMEACA
         Write-Host '  [3]  Resetar ativacao do Windows  (qualquer ativacao, legitima ou nao)' -ForegroundColor $COR_AVISO
-        Write-Host '  [4]  Sair'                                                              -ForegroundColor DarkGray
+        Write-Host '  [4]  Ver log da sessao atual'                                           -ForegroundColor $COR_INFO
+        Write-Host '  [5]  Sair'                                                              -ForegroundColor DarkGray
         Write-Host ''
         Write-Host '  Opcao: ' -ForegroundColor $COR_SECAO -NoNewline
         $opcao = Read-Host
@@ -658,6 +696,9 @@ function Show-Menu {
                 Pause-Continuar
             }
             '4' {
+                Show-Log
+            }
+            '5' {
                 Write-Host ''
                 Write-Host '  Encerrando. Ate logo, ' -ForegroundColor $COR_INFO -NoNewline
                 Write-Host $env:USERNAME -ForegroundColor $COR_DESTAQUE -NoNewline
