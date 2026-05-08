@@ -173,42 +173,107 @@ function Get-StatusAtivacao {
         KMSSuspeito = $false
     }
 
-    # WMI: valores numericos, sem dependencia de idioma ou encoding
-    $appId = '55c92734-d682-4d71-983e-d6ec3f16059f'
-    try {
-        $produto = Get-WmiObject -Query "SELECT Name, LicenseStatus FROM SoftwareLicensingProduct WHERE PartialProductKey IS NOT NULL AND ApplicationId = '$appId'" -ErrorAction Stop |
-                   Select-Object -First 1
-
-        if ($produto) {
-            $resultado.Descricao = $produto.Name
-
-            $statusMap = @{
-                0 = 'Nao licenciado'
-                1 = 'Licenciado'
-                2 = 'Graca inicial (OOB)'
-                3 = 'Graca por tolerancia'
-                4 = 'Graca nao genuino'
-                5 = 'Notificacao'
-                6 = 'Graca estendida'
-            }
-            $n = [int]$produto.LicenseStatus
-            $resultado.Status  = if ($statusMap.ContainsKey($n)) { $statusMap[$n] } else { "Codigo $n" }
-            $resultado.Ativado = ($n -eq 1)
-        }
-    } catch {
-        Write-Log "Erro ao consultar WMI SoftwareLicensingProduct: $_" 'ERRO'
+    $statusMap = @{
+        0 = 'Nao licenciado'
+        1 = 'Licenciado'
+        2 = 'Graca inicial (OOB)'
+        3 = 'Graca por tolerancia'
+        4 = 'Graca nao genuino'
+        5 = 'Notificacao'
+        6 = 'Graca estendida'
     }
 
+    $appId   = '55c92734-d682-4d71-983e-d6ec3f16059f'
+    $filtroCompleto = "PartialProductKey IS NOT NULL AND ApplicationId = '$appId'"
+    $filtroSimples  = 'PartialProductKey IS NOT NULL'
+    $produto = $null
+
+    # Tentativa 1: Get-CimInstance com filtro por ApplicationId
     try {
-        $sls = Get-WmiObject -Class SoftwareLicensingService -ErrorAction Stop
-        if ($sls.KeyManagementServiceName) {
-            $resultado.ServidorKMS = $sls.KeyManagementServiceName
-            if ($resultado.ServidorKMS -match '^(127\.0\.0\.1|localhost|::1)$') {
-                $resultado.KMSSuspeito = $true
+        $produto = Get-CimInstance -ClassName SoftwareLicensingProduct `
+                   -Filter $filtroCompleto -ErrorAction Stop |
+                   Select-Object -First 1
+        if ($produto) { Write-Log "Ativacao: CimInstance (filtro completo) OK" }
+    } catch { Write-Log "CimInstance (filtro completo) falhou: $_" 'AVISO' }
+
+    # Tentativa 2: Get-WmiObject com filtro por ApplicationId
+    if (-not $produto) {
+        try {
+            $produto = Get-WmiObject -Query "SELECT Name, LicenseStatus FROM SoftwareLicensingProduct WHERE $filtroCompleto" `
+                       -ErrorAction Stop | Select-Object -First 1
+            if ($produto) { Write-Log "Ativacao: WmiObject (filtro completo) OK" }
+        } catch { Write-Log "WmiObject (filtro completo) falhou: $_" 'AVISO' }
+    }
+
+    # Tentativa 3: Get-CimInstance sem filtro por ApplicationId, filtrando por nome
+    if (-not $produto) {
+        try {
+            $produto = Get-CimInstance -ClassName SoftwareLicensingProduct `
+                       -Filter $filtroSimples -ErrorAction Stop |
+                       Where-Object { $_.Name -match 'Windows' } |
+                       Select-Object -First 1
+            if ($produto) { Write-Log "Ativacao: CimInstance (filtro simples) OK" }
+        } catch { Write-Log "CimInstance (filtro simples) falhou: $_" 'AVISO' }
+    }
+
+    # Tentativa 4: Get-WmiObject sem filtro por ApplicationId
+    if (-not $produto) {
+        try {
+            $produto = Get-WmiObject -Query "SELECT Name, LicenseStatus FROM SoftwareLicensingProduct WHERE $filtroSimples" `
+                       -ErrorAction Stop |
+                       Where-Object { $_.Name -match 'Windows' } |
+                       Select-Object -First 1
+            if ($produto) { Write-Log "Ativacao: WmiObject (filtro simples) OK" }
+        } catch { Write-Log "WmiObject (filtro simples) falhou: $_" 'AVISO' }
+    }
+
+    if ($produto) {
+        $resultado.Descricao = $produto.Name
+        $n = [int]$produto.LicenseStatus
+        $resultado.Status  = if ($statusMap.ContainsKey($n)) { $statusMap[$n] } else { "Codigo $n" }
+        $resultado.Ativado = ($n -eq 1)
+    } else {
+        # Tentativa 5: fallback slmgr com encoding OEM correto
+        Write-Log "Todos os metodos WMI falharam — usando slmgr /dli" 'AVISO'
+        try {
+            $prevEnc = [Console]::OutputEncoding
+            [Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding(850)
+            $saida = (& "$env:SystemRoot\System32\cscript.exe" //NoLogo "$env:SystemRoot\System32\slmgr.vbs" /dli 2>&1) -join "`n"
+            [Console]::OutputEncoding = $prevEnc
+            Write-Log "slmgr /dli: $saida"
+
+            if ($saida -match '(?m)^\s*(?:Nome|Name):\s*(.+)') {
+                $resultado.Descricao = $Matches[1].Trim()
             }
+            # Padrao flexivel: casa "Estado da Licenca", "License Status", etc. sem depender de acentos
+            if ($saida -match '(?i)(?:estado|status)[^\n:]*licen[^\n:]*:\s*([^\n\r]+)') {
+                $st = $Matches[1].Trim()
+                $resultado.Status  = $st
+                $resultado.Ativado = ($st -match 'Licenciad|Licensed|Ativad|Activated')
+            } elseif ($saida -match '(?i)license\s+status[^\n:]*:\s*([^\n\r]+)') {
+                $st = $Matches[1].Trim()
+                $resultado.Status  = $st
+                $resultado.Ativado = ($st -match 'Licensed|Activated')
+            }
+        } catch {
+            Write-Log "Fallback slmgr falhou: $_" 'ERRO'
         }
+    }
+
+    # Servidor KMS — tenta CimInstance depois WmiObject
+    $sls = $null
+    try {
+        $sls = Get-CimInstance -ClassName SoftwareLicensingService -ErrorAction Stop
     } catch {
-        Write-Log "Erro ao consultar WMI SoftwareLicensingService: $_" 'ERRO'
+        try {
+            $sls = Get-WmiObject -Class SoftwareLicensingService -ErrorAction SilentlyContinue
+        } catch {}
+    }
+    if ($sls -and $sls.KeyManagementServiceName) {
+        $resultado.ServidorKMS = $sls.KeyManagementServiceName
+        if ($resultado.ServidorKMS -match '^(127\.0\.0\.1|localhost|::1)$') {
+            $resultado.KMSSuspeito = $true
+        }
     }
 
     return $resultado
