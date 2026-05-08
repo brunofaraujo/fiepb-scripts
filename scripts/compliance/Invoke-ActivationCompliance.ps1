@@ -234,7 +234,7 @@ function Get-StatusAtivacao {
         $resultado.Ativado = ($n -eq 1)
     } else {
         # Tentativa 5: fallback slmgr com encoding OEM correto
-        Write-Log "Todos os metodos WMI falharam — usando slmgr /dli" 'AVISO'
+        Write-Log "Todos os metodos WMI falharam - usando slmgr /dli" 'AVISO'
         try {
             $prevEnc = [Console]::OutputEncoding
             [Console]::OutputEncoding = [System.Text.Encoding]::GetEncoding(850)
@@ -260,7 +260,7 @@ function Get-StatusAtivacao {
         }
     }
 
-    # Servidor KMS — tenta CimInstance depois WmiObject
+    # Servidor KMS - tenta CimInstance depois WmiObject
     $sls = $null
     try {
         $sls = Get-CimInstance -ClassName SoftwareLicensingService -ErrorAction Stop
