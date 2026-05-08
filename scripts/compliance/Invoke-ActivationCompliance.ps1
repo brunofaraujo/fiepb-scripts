@@ -9,7 +9,7 @@
 
 .NOTES
     Autor   : Bruno Araujo
-    Versao  : 1.0.0
+    Versao  : 1.1.0
     Criado  : 2026-05-06
     Requer  : PowerShell 5.1+, Windows 10/11, privilegios de Administrador
 
@@ -103,7 +103,7 @@ function Write-Header {
     Write-Host ('  {0,-70}' -f ' ') -ForegroundColor $COR_TITULO
     Write-Host ('  {0,-70}' -f '  FIEPB Scripts - Sanitizador de Ativacao do Windows') -ForegroundColor $COR_TITULO
     Write-Host ('  {0,-70}' -f ' ') -ForegroundColor $COR_TITULO
-    Write-Host ('  {0,-45}{1,25}' -f '  Autor: Bruno Araujo', 'v1.0.0') -ForegroundColor $COR_TITULO
+    Write-Host ('  {0,-45}{1,25}' -f '  Autor: Bruno Araujo', 'v1.1.0') -ForegroundColor $COR_TITULO
     Write-Host ('  {0,-70}' -f ' ') -ForegroundColor $COR_TITULO
     Write-Host $borda -ForegroundColor $COR_TITULO
     Write-Host ''
